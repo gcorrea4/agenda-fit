@@ -1,14 +1,47 @@
-### Listar (no projeto base devolve todas as aulas, sem paginação)
-GET http://localhost:8080/classes
+@host = http://localhost:8080
 
-### Uma aula
-GET http://localhost:8080/classes/1
+### Login do ADMIN → copie o token para a variável abaixo
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{"email": "admin@fit.com", "password": "admin123"}
+
+### Login da Ana (USER)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{"email": "ana@fit.com", "password": "ana123"}
+
+@token = cole-o-token-aqui
+
+### Cadastro → 201 (repetir dá 409)
+POST {{host}}/auth/register
+Content-Type: application/json
+
+{"name": "Carlos Lima", "email": "carlos@fit.com", "password": "carlos123"}
+
+### Listar: página 0 com 10 aulas, por horário
+GET {{host}}/classes
+
+### Página 2 com 5 aulas
+GET {{host}}/classes?page=2&size=5
+
+### Query by Example
+GET {{host}}/classes/example?modality=YOGA&level=BEGINNER&instructor=carla mendes
+
+### Specification: título contém, faixa de horário e só com vaga
+GET {{host}}/classes/search?title=yoga&startsAfter=2026-11-01T00:00:00&startsBefore=2026-11-05T23:59:59&availableOnly=true
+
+### Uma aula (os links mudam conforme o token)
+GET {{host}}/classes/1
+Authorization: Bearer {{token}}
 
 ### Aula inexistente → 404
-GET http://localhost:8080/classes/999
+GET {{host}}/classes/999
 
-### Criar → 201
-POST http://localhost:8080/classes
+### Criar (ADMIN) → 201 + Location
+POST {{host}}/classes
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -21,14 +54,15 @@ Content-Type: application/json
   "capacity": 15
 }
 
-### Criar inválida → 400
-POST http://localhost:8080/classes
+### Criar sem token → 401
+POST {{host}}/classes
 Content-Type: application/json
 
-{"title": "", "modality": "YOGA"}
+{"title": "Sem token"}
 
-### Atualizar → 200
-PUT http://localhost:8080/classes/1
+### Atualizar (ADMIN) → 200
+PUT {{host}}/classes/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -41,5 +75,18 @@ Content-Type: application/json
   "capacity": 30
 }
 
-### Excluir → 204
-DELETE http://localhost:8080/classes/2
+### Excluir (ADMIN) → 204
+DELETE {{host}}/classes/2
+Authorization: Bearer {{token}}
+
+### Inscrever-se → 201 (repetir ou aula lotada dá 409)
+POST {{host}}/classes/3/enrollments
+Authorization: Bearer {{token}}
+
+### Minhas inscrições
+GET {{host}}/enrollments/me
+Authorization: Bearer {{token}}
+
+### Cancelar inscrição (dono ou ADMIN) → 204; de outro aluno → 403
+DELETE {{host}}/enrollments/1
+Authorization: Bearer {{token}}

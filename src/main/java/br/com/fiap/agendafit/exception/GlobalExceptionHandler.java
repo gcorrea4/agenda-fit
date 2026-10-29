@@ -1,6 +1,7 @@
 package br.com.fiap.agendafit.exception;
 
 import br.com.fiap.agendafit.dto.ErrorResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -34,6 +35,13 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleUnreadable(HttpMessageNotReadableException e) {
         return new ErrorResponse("Malformed JSON body");
+    }
+
+    // ex.: duas inscrições simultâneas do mesmo usuário na mesma aula
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleConflict(DataIntegrityViolationException e) {
+        return new ErrorResponse("Conflict with existing data");
     }
 
     // ex.: um id que não é número na URL
